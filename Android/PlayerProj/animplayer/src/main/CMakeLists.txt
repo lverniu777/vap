@@ -23,6 +23,7 @@ add_library( # Sets the name of the library.
 
         # Provides a relative path to your source file(s).
         cpp/native-lib.cpp
+        cpp/AnimPlayer.cpp
         )
 add_library(
         avcodec
