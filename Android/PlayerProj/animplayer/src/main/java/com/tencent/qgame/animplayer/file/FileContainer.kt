@@ -28,6 +28,8 @@ class FileContainer(private val file: File) : IFileContainer {
         private const val TAG = "${Constant.TAG}.FileContainer"
     }
 
+    val filePath = file.absolutePath
+
     private var randomAccessFile: RandomAccessFile? = null
 
     init {
