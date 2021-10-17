@@ -39,9 +39,6 @@ class SoftDecoder(player: AnimPlayer) : Decoder(player), SurfaceTexture.OnFrameA
         }
     }
 
-    init {
-        nativeInit()
-    }
 
     private external fun nativeInit();
 
@@ -61,6 +58,7 @@ class SoftDecoder(player: AnimPlayer) : Decoder(player), SurfaceTexture.OnFrameA
     private var outputFormat: MediaFormat? = null
 
     override fun start(fileContainer: IFileContainer) {
+        nativeInit();
         isStopReq = false
         needDestroy = false
         isRunning = true
@@ -91,24 +89,14 @@ class SoftDecoder(player: AnimPlayer) : Decoder(player), SurfaceTexture.OnFrameA
     }
 
     private fun startPlay(fileContainer: IFileContainer) {
-
-        var format: MediaFormat? = null
-
+        if (!(fileContainer is FileContainer)) {
+            throw UnsupportedOperationException("not support file container type $fileContainer")
+        }
+        nativeOnStartPlay(nativeInstance,fileContainer.filePath)
+        val format: MediaFormat?
         try {
             format = nativeGetMediaFormat(nativeInstance)
             if (format == null) throw RuntimeException("format is null")
-
-            // 是否支持h265
-            if (MediaUtil.checkIsHevc(format)) {
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP
-                    || !MediaUtil.checkSupportCodec(MediaUtil.MIME_HEVC)
-                ) {
-
-                    notSupportFormat()
-                    return
-                }
-            }
-
             videoWidth = format.getInteger(MediaFormat.KEY_WIDTH)
             videoHeight = format.getInteger(MediaFormat.KEY_HEIGHT)
             // 防止没有INFO_OUTPUT_FORMAT_CHANGED时导致alignWidth和alignHeight不会被赋值一直是0
@@ -154,9 +142,9 @@ class SoftDecoder(player: AnimPlayer) : Decoder(player), SurfaceTexture.OnFrameA
         decodeThread.handler?.post {
             val surface = Surface(glTexture);
             try {
-                if(fileContainer is FileContainer) {
-                    nativeStartDecode(nativeInstance,surface, fileContainer.filePath)
-                }else {
+                if (fileContainer is FileContainer) {
+                    nativeStartDecode(nativeInstance, surface)
+                } else {
                     throw UnsupportedOperationException("not support file container type $fileContainer")
                 }
             } catch (e: Throwable) {
@@ -166,23 +154,16 @@ class SoftDecoder(player: AnimPlayer) : Decoder(player), SurfaceTexture.OnFrameA
                     "${Constant.ERROR_MSG_DECODE_EXC} e=$e"
                 )
                 release()
-            }finally {
+            } finally {
                 surface.release()
             }
         }
     }
 
-    private external fun nativeStartDecode(nativeInstance: Long, surface: Surface, filePath: String)
+    private external fun nativeOnStartPlay(nativeInstance: Long, filePath: String?);
 
-    private fun notSupportFormat() {
-        onFailed(
-            Constant.REPORT_ERROR_TYPE_HEVC_NOT_SUPPORT,
-            "${Constant.ERROR_MSG_HEVC_NOT_SUPPORT} " +
-                    "sdk:${Build.VERSION.SDK_INT}" +
-                    ",support hevc:" + MediaUtil.checkSupportCodec(MediaUtil.MIME_HEVC)
-        )
-        release()
-    }
+    private external fun nativeStartDecode(nativeInstance: Long, surface: Surface)
+
 
     private external fun nativeGetMediaFormat(nativeInstance: Long): MediaFormat?
 
@@ -193,6 +174,7 @@ class SoftDecoder(player: AnimPlayer) : Decoder(player), SurfaceTexture.OnFrameA
             try {
                 ALog.i(TAG, "release")
                 nativeRelease(nativeInstance)
+                nativeInstance = -1;
                 glTexture?.release()
                 glTexture = null
                 speedControlUtil.reset()

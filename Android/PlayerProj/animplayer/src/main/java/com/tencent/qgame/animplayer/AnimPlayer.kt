@@ -129,10 +129,7 @@ class AnimPlayer(val animView: IAnimView) {
 
     private fun prepareDecoder() {
         if (decoder == null) {
-            decoder = HardDecoder(this).apply {
-                playLoop = this@AnimPlayer.playLoop
-                fps = this@AnimPlayer.fps
-            }
+            decoder = DecoderFactory.getInstance(this);
         }
         if (audioPlayer == null) {
             audioPlayer = AudioPlayer(this).apply {

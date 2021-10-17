@@ -105,6 +105,17 @@ set_target_properties(
 )
 
 add_library(
+        postproc
+        SHARED
+        IMPORTED
+)
+set_target_properties(
+        postproc
+        PROPERTIES IMPORTED_LOCATION
+        ${libpath}/libpostproc.so
+)
+
+add_library(
         x264
         SHARED
         IMPORTED
@@ -150,8 +161,10 @@ target_link_libraries( # Specifies the target library.
         avutil
         swresample
         swscale
+        postproc
         x264
         fdkaac
+        android
         # Links the target library to the log library
         # included in the NDK.
         ${log-lib})
