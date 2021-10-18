@@ -18,12 +18,10 @@ package com.tencent.qgame.animplayer
 import android.graphics.SurfaceTexture
 import android.media.MediaCodec
 import android.media.MediaFormat
-import android.os.Build
 import android.view.Surface
 import com.tencent.qgame.animplayer.file.FileContainer
 import com.tencent.qgame.animplayer.file.IFileContainer
 import com.tencent.qgame.animplayer.util.ALog
-import com.tencent.qgame.animplayer.util.MediaUtil
 import java.lang.UnsupportedOperationException
 
 /**
@@ -32,7 +30,7 @@ import java.lang.UnsupportedOperationException
 class SoftDecoder(player: AnimPlayer) : Decoder(player), SurfaceTexture.OnFrameAvailableListener {
 
     companion object {
-        private const val TAG = "${Constant.TAG}.softDecoder"
+        private const val TAG = "SoftDecoder"
 
         init {
             System.loadLibrary("native-lib")
@@ -92,7 +90,7 @@ class SoftDecoder(player: AnimPlayer) : Decoder(player), SurfaceTexture.OnFrameA
         if (!(fileContainer is FileContainer)) {
             throw UnsupportedOperationException("not support file container type $fileContainer")
         }
-        nativeOnStartPlay(nativeInstance,fileContainer.filePath)
+        nativeOnStartPlay(nativeInstance, fileContainer.filePath)
         val format: MediaFormat?
         try {
             format = nativeGetMediaFormat(nativeInstance)
@@ -156,6 +154,7 @@ class SoftDecoder(player: AnimPlayer) : Decoder(player), SurfaceTexture.OnFrameA
                 release()
             } finally {
                 surface.release()
+                release()
             }
         }
     }
@@ -166,6 +165,18 @@ class SoftDecoder(player: AnimPlayer) : Decoder(player), SurfaceTexture.OnFrameA
 
 
     private external fun nativeGetMediaFormat(nativeInstance: Long): MediaFormat?
+
+    /**
+     * native解码完成后回调回来
+     */
+    private fun onVideoDecode(frameIndex: Int) {
+        if (frameIndex == 0) {
+            onVideoStart()
+        } else {
+            player.pluginManager.onDecoding(frameIndex)
+            onVideoRender(frameIndex, player.configManager.config)
+        }
+    }
 
 
     private fun release() {

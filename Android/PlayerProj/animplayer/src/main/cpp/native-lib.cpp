@@ -16,9 +16,8 @@ JNIEXPORT void JNICALL
 Java_com_tencent_qgame_animplayer_SoftDecoder_nativeStartDecode(JNIEnv *env, jobject thiz,
                                                                 jlong native_instance,
                                                                 jobject surface) {
-    SoftDecoder * softDecoder = (SoftDecoder*)native_instance;
-    softDecoder->startDecode(env, surface);
-
+    SoftDecoder *softDecoder = (SoftDecoder *) native_instance;
+    softDecoder->startDecode(surface, env, thiz);
 }
 extern "C"
 JNIEXPORT jobject JNICALL
@@ -44,6 +43,6 @@ JNIEXPORT void JNICALL
 Java_com_tencent_qgame_animplayer_SoftDecoder_nativeOnStartPlay(JNIEnv *env, jobject thiz,
                                                                 jlong native_instance,
                                                                 jstring file_path) {
-    SoftDecoder* softDecoder = (SoftDecoder*)native_instance;
+    SoftDecoder *softDecoder = (SoftDecoder *) native_instance;
     softDecoder->init(env, file_path);
 }

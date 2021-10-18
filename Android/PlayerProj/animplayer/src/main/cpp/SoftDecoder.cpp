@@ -55,6 +55,7 @@ void SoftDecoder::release(JNIEnv *pEnv) {
         free(this->filePath);
         this->filePath = nullptr;
     }
+    this->mDecodeFrameIndex = 0;
 }
 
 jobject SoftDecoder::getMediaFormat(JNIEnv *jniEnv) {
@@ -88,7 +89,7 @@ jobject SoftDecoder::getMediaFormat(JNIEnv *jniEnv) {
 }
 
 
-void SoftDecoder::startDecode(JNIEnv *pEnv, jobject javaSurface) {
+void SoftDecoder::startDecode(jobject javaSurface, JNIEnv *jniEnv, jobject javaInstance) {
     AVCodecContext *codecContext = nullptr;
     AVPacket *packet = nullptr;
     AVPixelFormat swsDstPixelFormat = AV_PIX_FMT_RGBA;
@@ -139,7 +140,7 @@ void SoftDecoder::startDecode(JNIEnv *pEnv, jobject javaSurface) {
             //读到了多媒体文件的尾部，需要清空解码缓冲
             //清空解码缓冲区
             avcodec_send_packet(codecContext, nullptr);
-            decodeAndRender(pEnv, javaSurface, codecContext, swsDstPixelFormat);
+            decodeAndRender(jniEnv, javaSurface, codecContext, swsDstPixelFormat, javaInstance);
             break;
         }
         __android_log_print(ANDROID_LOG_ERROR, "SoftDecoder",
@@ -156,7 +157,7 @@ void SoftDecoder::startDecode(JNIEnv *pEnv, jobject javaSurface) {
                                 av_err2str(ret));
             continue;
         }
-        decodeAndRender(pEnv, javaSurface, codecContext, swsDstPixelFormat);
+        decodeAndRender(jniEnv, javaSurface, codecContext, swsDstPixelFormat, javaInstance);
         av_packet_unref(packet);
     }
     clear:
@@ -169,11 +170,13 @@ void SoftDecoder::startDecode(JNIEnv *pEnv, jobject javaSurface) {
 
 }
 
-void SoftDecoder::decodeAndRender(JNIEnv *pEnv, jobject javaSurface,
-                                  AVCodecContext *codecContext,
-                                  AVPixelFormat swsDstPixelFormat) {
+void SoftDecoder::decodeAndRender(JNIEnv *pEnv, jobject javaSurface, AVCodecContext *codecContext,
+                                  AVPixelFormat swsDstPixelFormat, jobject javaInstance) {
     SwsContext *swsContext = nullptr;
     AVFrame *decodeFrame = av_frame_alloc();
+    jclass softDecoderClass = pEnv->GetObjectClass(javaInstance);
+    jmethodID onVideoDecodeMethod = pEnv->GetMethodID(softDecoderClass, "onVideoDecode",
+                                                      "(I)V");
     if (decodeFrame == nullptr) {
         return;
     }
@@ -197,6 +200,8 @@ void SoftDecoder::decodeAndRender(JNIEnv *pEnv, jobject javaSurface,
                                 decodeFrame->pkt_size
             );
         }
+
+        pEnv->CallVoidMethod(javaInstance, onVideoDecodeMethod, this->mDecodeFrameIndex++);
         if (swsContext == nullptr) {
             swsContext = sws_getContext(decodeFrame->width, decodeFrame->height,
                                         codecContext->pix_fmt,
