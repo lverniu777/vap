@@ -73,7 +73,7 @@ abstract class Decoder(val player: AnimPlayer) : IAnimListener {
 
     abstract fun start(fileContainer: IFileContainer)
 
-    fun stop() {
+    open fun stop() {
         isStopReq = true
     }
 

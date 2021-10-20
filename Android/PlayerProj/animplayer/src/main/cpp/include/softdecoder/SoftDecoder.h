@@ -15,9 +15,10 @@ extern "C" {
 class SoftDecoder {
 private:
     int mDecodeFrameIndex = 0;
-    char *filePath = nullptr;
-    AVFormatContext *formatContext = nullptr;
-    bool mIsRelease = false;
+    char *mFilePath = nullptr;
+    AVFormatContext *mFormatContext = nullptr;
+    AVStream *mVideoStream = nullptr;
+    bool mIsStop = false;
 
     void decodeAndRender(JNIEnv *pEnv, jobject javaSurface, AVCodecContext *codecContext,
                          AVPixelFormat swsDstPixelFormat, jobject javaInstance);
@@ -33,6 +34,7 @@ public:
 
     void startDecode(jobject javaSurface, JNIEnv *jniEnv, jobject javaInstance);
 
+    void stop();
 };
 
 

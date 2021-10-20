@@ -18,6 +18,7 @@ package com.tencent.qgame.animplayer
 import android.graphics.SurfaceTexture
 import android.media.MediaCodec
 import android.media.MediaFormat
+import android.util.Log
 import android.view.Surface
 import com.tencent.qgame.animplayer.file.FileContainer
 import com.tencent.qgame.animplayer.file.IFileContainer
@@ -159,6 +160,13 @@ class SoftDecoder(player: AnimPlayer) : Decoder(player), SurfaceTexture.OnFrameA
         }
     }
 
+    override fun stop() {
+        super.stop()
+        nativeStop(nativeInstance)
+    }
+
+    private external fun nativeStop(nativeInstance: Long);
+
     private external fun nativeOnStartPlay(nativeInstance: Long, filePath: String?);
 
     private external fun nativeStartDecode(nativeInstance: Long, surface: Surface)
@@ -169,7 +177,10 @@ class SoftDecoder(player: AnimPlayer) : Decoder(player), SurfaceTexture.OnFrameA
     /**
      * native解码完成后回调回来
      */
-    private fun onVideoDecode(frameIndex: Int) {
+    private fun onVideoDecode(frameIndex: Int, pts: Float) {
+        Log.e(TAG, "onVideoDecode: frameIndex${frameIndex} pts${pts}")
+        val ptsInUs = pts * 1000_000
+        speedControlUtil.preRender(ptsInUs.toLong())
         if (frameIndex == 0) {
             onVideoStart()
         } else {
