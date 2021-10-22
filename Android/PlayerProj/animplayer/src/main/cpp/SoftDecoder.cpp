@@ -23,24 +23,30 @@ void SoftDecoder::init(JNIEnv *pEnv, jstring file_path) {
     const char *filePathChars = pEnv->GetStringUTFChars(file_path, nullptr);
     mFilePath = (char *) malloc(sizeof(char) * (int) strlen(filePathChars));
     strcpy(this->mFilePath, filePathChars);
-    mFormatContext = avformat_alloc_context();
-    if (!mFormatContext) {
-        goto clear;
-    }
-    ret = avformat_open_input(&mFormatContext, this->mFilePath, nullptr, nullptr);
-    if (ret < 0) {
-        goto clear;
-    }
-    ret = avformat_find_stream_info(mFormatContext, nullptr);
-    if (ret < 0) {
-        goto clear;
-    }
-    return;
-    clear:
-    if (mFormatContext) {
+    pEnv->ReleaseStringUTFChars(file_path, filePathChars);
+    bool isSuccess = false;
+    do {
+        mFormatContext = avformat_alloc_context();
+        if (!mFormatContext) {
+            isSuccess = false;
+            break;
+        }
+        ret = avformat_open_input(&mFormatContext, this->mFilePath, nullptr, nullptr);
+        if (ret < 0) {
+            isSuccess = false;
+            break;
+        }
+        ret = avformat_find_stream_info(mFormatContext, nullptr);
+        if (ret < 0) {
+            isSuccess = false;
+            break;
+        }
+        isSuccess = true;
+    } while (false);
+
+    if (!isSuccess && mFormatContext) {
         avformat_close_input(&mFormatContext);
         mFormatContext = nullptr;
-        pEnv->ReleaseStringUTFChars(file_path, filePathChars);
     }
 }
 
@@ -165,7 +171,7 @@ void SoftDecoder::startDecode(jobject javaSurface, JNIEnv *jniEnv, jobject javaI
         av_packet_free(&packet);
     }
     if (codecContext) {
-        avcodec_close(codecContext);
+        avcodec_free_context(&codecContext);
     }
 
 }
@@ -174,13 +180,18 @@ void SoftDecoder::decodeAndRender(JNIEnv *pEnv, jobject javaSurface, AVCodecCont
                                   AVPixelFormat swsDstPixelFormat, jobject javaInstance) {
     SwsContext *swsContext = nullptr;
     AVFrame *decodeFrame = av_frame_alloc();
-    jclass softDecoderClass = pEnv->GetObjectClass(javaInstance);
-    jmethodID onVideoDecodeMethod = pEnv->GetMethodID(softDecoderClass, "onVideoDecode", "(IF)V");
     if (decodeFrame == nullptr) {
         return;
     }
+    jclass softDecoderClass = pEnv->GetObjectClass(javaInstance);
+    jmethodID onVideoDecodeMethod = pEnv->GetMethodID(softDecoderClass, "onVideoDecode", "(IF)V");
+    jclass surfaceClass = pEnv->FindClass("android/view/Surface");
+    jmethodID surfaceIsValidMethodId = pEnv->GetMethodID(surfaceClass, "isValid", "()Z");
     int ret = -1;
     do {
+        if (!pEnv->CallBooleanMethod(javaSurface,surfaceIsValidMethodId)) {
+            break;
+        }
         ret = avcodec_receive_frame(codecContext, decodeFrame);
         if (ret) {
             __android_log_print(ANDROID_LOG_ERROR, "SoftDecoder",
@@ -242,9 +253,7 @@ void SoftDecoder::decodeAndRender(JNIEnv *pEnv, jobject javaSurface, AVCodecCont
     if (swsContext) {
         sws_freeContext(swsContext);
     }
-    if (decodeFrame) {
-        av_frame_free(&decodeFrame);
-    }
+    av_frame_free(&decodeFrame);
 }
 
 void SoftDecoder::stop() {
