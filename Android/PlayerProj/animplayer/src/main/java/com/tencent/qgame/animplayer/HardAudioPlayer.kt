@@ -21,7 +21,10 @@ import com.tencent.qgame.animplayer.util.ALog
 import com.tencent.qgame.animplayer.util.MediaUtil
 import java.lang.RuntimeException
 
-class AudioPlayer(val player: AnimPlayer) {
+/**
+ * 使用硬解+AudioTrack进行播放
+ */
+class HardAudioPlayer(val player: AnimPlayer) : BaseAudioPlayer() {
 
     companion object {
         private const val TAG = "${Constant.TAG}.AudioPlayer"
@@ -32,7 +35,6 @@ class AudioPlayer(val player: AnimPlayer) {
     var audioTrack: AudioTrack? = null
     val decodeThread = HandlerHolder(null, null)
     var isRunning = false
-    var playLoop = 0
     var isStopReq = false
     var needDestroy = false
 
@@ -42,7 +44,7 @@ class AudioPlayer(val player: AnimPlayer) {
         return Decoder.createThread(decodeThread, "anim_audio_thread")
     }
 
-    fun start(fileContainer: IFileContainer) {
+    override fun start(fileContainer: IFileContainer) {
         isStopReq = false
         needDestroy = false
         if (!prepareThread()) return
@@ -60,7 +62,7 @@ class AudioPlayer(val player: AnimPlayer) {
         }
     }
 
-    fun stop() {
+    override fun stop() {
         isStopReq = true
     }
 
@@ -179,7 +181,7 @@ class AudioPlayer(val player: AnimPlayer) {
         }
     }
 
-    fun destroy() {
+    override fun destroy() {
         needDestroy = true
         if (isRunning) {
             stop()

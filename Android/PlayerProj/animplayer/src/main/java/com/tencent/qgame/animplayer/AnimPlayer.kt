@@ -29,7 +29,7 @@ class AnimPlayer(val animView: IAnimView) {
 
     var animListener: IAnimListener? = null
     var decoder: Decoder? = null
-    var audioPlayer: AudioPlayer? = null
+    var audioPlayer: BaseAudioPlayer? = null
     var fps: Int = 0
         set(value) {
             decoder?.fps = value
@@ -132,9 +132,7 @@ class AnimPlayer(val animView: IAnimView) {
             decoder = DecoderFactory.getInstance(this);
         }
         if (audioPlayer == null) {
-            audioPlayer = AudioPlayer(this).apply {
-                playLoop = this@AnimPlayer.playLoop
-            }
+            audioPlayer = AudioPlayerFactory.getInstance(this);
         }
     }
 

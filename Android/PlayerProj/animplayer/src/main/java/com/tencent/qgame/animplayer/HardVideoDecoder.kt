@@ -26,7 +26,7 @@ import com.tencent.qgame.animplayer.file.IFileContainer
 import com.tencent.qgame.animplayer.util.ALog
 import com.tencent.qgame.animplayer.util.MediaUtil
 
-class HardDecoder(player: AnimPlayer) : Decoder(player), SurfaceTexture.OnFrameAvailableListener {
+class HardVideoDecoder(player: AnimPlayer) : Decoder(player), SurfaceTexture.OnFrameAvailableListener {
 
 
     companion object {
@@ -136,7 +136,7 @@ class HardDecoder(player: AnimPlayer) : Decoder(player), SurfaceTexture.OnFrameA
 
             render?.apply {
                 glTexture = SurfaceTexture(getExternalTexture()).apply {
-                    setOnFrameAvailableListener(this@HardDecoder)
+                    setOnFrameAvailableListener(this@HardVideoDecoder)
                     setDefaultBufferSize(videoWidth, videoHeight)
                 }
                 clearFrame()

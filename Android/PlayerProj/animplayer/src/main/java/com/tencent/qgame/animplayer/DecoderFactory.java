@@ -6,9 +6,9 @@ public class DecoderFactory {
         //软硬解降级逻辑
         final Decoder decoder;
         if (false) {
-            decoder = new HardDecoder(animPlayer);
+            decoder = new HardVideoDecoder(animPlayer);
         } else {
-            decoder = new SoftDecoder(animPlayer);
+            decoder = new SoftVideoDecoder(animPlayer);
         }
         decoder.setPlayLoop(animPlayer.getPlayLoop());
         decoder.setFps(animPlayer.getFps());

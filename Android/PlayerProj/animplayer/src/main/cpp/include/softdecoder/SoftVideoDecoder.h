@@ -2,8 +2,8 @@
 // Created by huaxia on 2021/9/21.
 //
 
-#ifndef PLAYERPROJ_SOFTDECODER_H
-#define PLAYERPROJ_SOFTDECODER_H
+#ifndef PLAYERPROJ_SOFTVIDEODECODER_H
+#define PLAYERPROJ_SOFTVIDEODECODER_H
 
 #include <jni.h>
 
@@ -12,7 +12,7 @@ extern "C" {
 #include "libswscale/swscale.h"
 };
 
-class SoftDecoder {
+class SoftVideoDecoder {
 private:
     int mDecodeFrameIndex = 0;
     char *mFilePath = nullptr;
@@ -24,7 +24,7 @@ private:
                          AVPixelFormat swsDstPixelFormat, jobject javaInstance);
 
 public:
-    SoftDecoder();
+    SoftVideoDecoder();
 
     void init(JNIEnv *pEnv, jstring pJstring);
 
@@ -38,4 +38,4 @@ public:
 };
 
 
-#endif //PLAYERPROJ_SOFTDECODER_H
+#endif //PLAYERPROJ_SOFTVIDEODECODER_H

@@ -23,7 +23,8 @@ add_library( # Sets the name of the library.
 
         # Provides a relative path to your source file(s).
         cpp/native-lib.cpp
-        cpp/SoftDecoder.cpp
+        cpp/SoftVideoDecoder.cpp
+        cpp/SoftAudioDecoder.cpp
         )
 add_library(
         avcodec

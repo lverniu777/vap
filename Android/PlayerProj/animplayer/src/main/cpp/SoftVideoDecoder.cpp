@@ -2,7 +2,7 @@
 // Created by huaxia on 2021/9/21.
 //
 
-#include "include/softdecoder/SoftDecoder.h"
+#include "include/softdecoder/SoftVideoDecoder.h"
 
 extern "C" {
 #include "libavcodec/avcodec.h"
@@ -14,11 +14,11 @@ extern "C" {
 #include "android/native_window_jni.h"
 
 
-SoftDecoder::SoftDecoder() {
+SoftVideoDecoder::SoftVideoDecoder() {
 
 }
 
-void SoftDecoder::init(JNIEnv *pEnv, jstring file_path) {
+void SoftVideoDecoder::init(JNIEnv *pEnv, jstring file_path) {
     int ret = -1;
     const char *filePathChars = pEnv->GetStringUTFChars(file_path, nullptr);
     mFilePath = (char *) malloc(sizeof(char) * (int) strlen(filePathChars));
@@ -50,10 +50,9 @@ void SoftDecoder::init(JNIEnv *pEnv, jstring file_path) {
     }
 }
 
-void SoftDecoder::release(JNIEnv *pEnv) {
+void SoftVideoDecoder::release(JNIEnv *pEnv) {
     if (mFormatContext) {
         avformat_close_input(&mFormatContext);
-        avformat_free_context(mFormatContext);
         mFormatContext = nullptr;
     }
     if (this->mFilePath) {
@@ -63,7 +62,7 @@ void SoftDecoder::release(JNIEnv *pEnv) {
     this->mDecodeFrameIndex = 0;
 }
 
-jobject SoftDecoder::getMediaFormat(JNIEnv *jniEnv) {
+jobject SoftVideoDecoder::getMediaFormat(JNIEnv *jniEnv) {
     if (mFormatContext) {
         jclass mediaFormatClass = jniEnv->FindClass("android/media/MediaFormat");
         jmethodID mediaFormatConstructor = jniEnv->GetMethodID(mediaFormatClass, "<init>", "()V");
@@ -94,7 +93,7 @@ jobject SoftDecoder::getMediaFormat(JNIEnv *jniEnv) {
 }
 
 
-void SoftDecoder::startDecode(jobject javaSurface, JNIEnv *jniEnv, jobject javaInstance) {
+void SoftVideoDecoder::startDecode(jobject javaSurface, JNIEnv *jniEnv, jobject javaInstance) {
     AVCodecContext *codecContext = nullptr;
     AVPacket *packet = nullptr;
     AVPixelFormat swsDstPixelFormat = AV_PIX_FMT_RGBA;
@@ -130,7 +129,7 @@ void SoftDecoder::startDecode(jobject javaSurface, JNIEnv *jniEnv, jobject javaI
             break;
         }
     }
-    __android_log_print(ANDROID_LOG_ERROR, "SoftDecoder", "video stream index: %d",
+    __android_log_print(ANDROID_LOG_ERROR, "SoftVideoDecoder", "video stream index: %d",
                         videoStreamIndex);
     packet = av_packet_alloc();
     av_init_packet(packet);
@@ -141,7 +140,7 @@ void SoftDecoder::startDecode(jobject javaSurface, JNIEnv *jniEnv, jobject javaI
         //解封装code
         ret = av_read_frame(mFormatContext, packet);
         if (ret) {
-            __android_log_print(ANDROID_LOG_ERROR, "SoftDecoder", "read decodeFrame error: %s",
+            __android_log_print(ANDROID_LOG_ERROR, "SoftVideoDecoder", "read decodeFrame error: %s",
                                 av_err2str(ret));
             //读到了多媒体文件的尾部，需要清空解码缓冲
             //清空解码缓冲区
@@ -149,7 +148,7 @@ void SoftDecoder::startDecode(jobject javaSurface, JNIEnv *jniEnv, jobject javaI
             decodeAndRender(jniEnv, javaSurface, codecContext, swsDstPixelFormat, javaInstance);
             break;
         }
-        __android_log_print(ANDROID_LOG_ERROR, "SoftDecoder",
+        __android_log_print(ANDROID_LOG_ERROR, "SoftVideoDecoder",
                             "packet stream index: %d packet size: %d",
                             packet->stream_index, packet->size);
         if (packet->stream_index != videoStreamIndex) {
@@ -159,7 +158,7 @@ void SoftDecoder::startDecode(jobject javaSurface, JNIEnv *jniEnv, jobject javaI
         //解码
         ret = avcodec_send_packet(codecContext, packet);
         if (ret < 0) {
-            __android_log_print(ANDROID_LOG_ERROR, "SoftDecoder", "send packet error: %s",
+            __android_log_print(ANDROID_LOG_ERROR, "SoftVideoDecoder", "send packet error: %s",
                                 av_err2str(ret));
             continue;
         }
@@ -176,8 +175,8 @@ void SoftDecoder::startDecode(jobject javaSurface, JNIEnv *jniEnv, jobject javaI
 
 }
 
-void SoftDecoder::decodeAndRender(JNIEnv *pEnv, jobject javaSurface, AVCodecContext *codecContext,
-                                  AVPixelFormat swsDstPixelFormat, jobject javaInstance) {
+void SoftVideoDecoder::decodeAndRender(JNIEnv *pEnv, jobject javaSurface, AVCodecContext *codecContext,
+                                       AVPixelFormat swsDstPixelFormat, jobject javaInstance) {
     SwsContext *swsContext = nullptr;
     AVFrame *decodeFrame = av_frame_alloc();
     if (decodeFrame == nullptr) {
@@ -194,7 +193,7 @@ void SoftDecoder::decodeAndRender(JNIEnv *pEnv, jobject javaSurface, AVCodecCont
         }
         ret = avcodec_receive_frame(codecContext, decodeFrame);
         if (ret) {
-            __android_log_print(ANDROID_LOG_ERROR, "SoftDecoder",
+            __android_log_print(ANDROID_LOG_ERROR, "SoftVideoDecoder",
                                 "receive decodeFrame error: %s",
                                 av_err2str(ret));
             if (ret == AVERROR_EOF) {
@@ -203,7 +202,7 @@ void SoftDecoder::decodeAndRender(JNIEnv *pEnv, jobject javaSurface, AVCodecCont
                 continue;
             }
         } else {
-            __android_log_print(ANDROID_LOG_ERROR, "SoftDecoder",
+            __android_log_print(ANDROID_LOG_ERROR, "SoftVideoDecoder",
                                 "decode decodeFrame width: %d height: %d frameSize: %d",
                                 decodeFrame->width,
                                 decodeFrame->height,
@@ -229,7 +228,7 @@ void SoftDecoder::decodeAndRender(JNIEnv *pEnv, jobject javaSurface, AVCodecCont
         int swsScaleRet = sws_scale(swsContext, decodeFrame->data, decodeFrame->linesize, 0,
                                     decodeFrame->height,
                                     data, lineSize);
-        __android_log_print(ANDROID_LOG_ERROR, "SoftDecoder",
+        __android_log_print(ANDROID_LOG_ERROR, "SoftVideoDecoder",
                             "sws_scale: %d ", swsScaleRet);
         //向surface输出
         ANativeWindow *nativeWindow = ANativeWindow_fromSurface(pEnv, javaSurface);
@@ -256,7 +255,7 @@ void SoftDecoder::decodeAndRender(JNIEnv *pEnv, jobject javaSurface, AVCodecCont
     av_frame_free(&decodeFrame);
 }
 
-void SoftDecoder::stop() {
+void SoftVideoDecoder::stop() {
     this->mIsStop = true;
 }
 

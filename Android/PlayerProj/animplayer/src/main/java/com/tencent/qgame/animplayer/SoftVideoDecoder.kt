@@ -26,12 +26,13 @@ import com.tencent.qgame.animplayer.util.ALog
 import java.lang.UnsupportedOperationException
 
 /**
- * 软解
+ * 视频软解
  */
-class SoftDecoder(player: AnimPlayer) : Decoder(player), SurfaceTexture.OnFrameAvailableListener {
+class SoftVideoDecoder(player: AnimPlayer) : Decoder(player),
+    SurfaceTexture.OnFrameAvailableListener {
 
     companion object {
-        private const val TAG = "SoftDecoder"
+        private const val TAG = "SoftVideoDecoder"
 
         init {
             System.loadLibrary("native-lib")
@@ -120,7 +121,7 @@ class SoftDecoder(player: AnimPlayer) : Decoder(player), SurfaceTexture.OnFrameA
 
             render?.apply {
                 glTexture = SurfaceTexture(getExternalTexture()).apply {
-                    setOnFrameAvailableListener(this@SoftDecoder)
+                    setOnFrameAvailableListener(this@SoftVideoDecoder)
                     setDefaultBufferSize(videoWidth, videoHeight)
                 }
                 clearFrame()
