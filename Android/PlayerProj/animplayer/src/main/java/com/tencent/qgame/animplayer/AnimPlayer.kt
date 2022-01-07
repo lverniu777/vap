@@ -27,6 +27,14 @@ class AnimPlayer(val animView: IAnimView) {
         private const val TAG = "${Constant.TAG}.AnimPlayer"
     }
 
+    var videoDecodeType: VideoDecodeType = VideoDecodeType.HARD_DECODE
+        set(value) {
+            if (value != field) {
+                decoder?.destroy()
+                decoder = null
+            }
+            field = value
+        }
     var animListener: IAnimListener? = null
     var decoder: Decoder? = null
     var audioPlayer: BaseAudioPlayer? = null

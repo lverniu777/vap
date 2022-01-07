@@ -28,6 +28,7 @@ import android.view.View
 import android.widget.Toast
 import com.tencent.qgame.animplayer.AnimConfig
 import com.tencent.qgame.animplayer.AnimView
+import com.tencent.qgame.animplayer.VideoDecodeType
 import com.tencent.qgame.animplayer.inter.IAnimListener
 import com.tencent.qgame.animplayer.inter.IFetchResource
 import com.tencent.qgame.animplayer.inter.OnResourceClickListener
@@ -69,6 +70,8 @@ class AnimVapxDemoActivity : Activity(), IAnimListener {
     private val uiHandler by lazy {
         Handler(Looper.getMainLooper())
     }
+
+    private var videoDecodeType = VideoDecodeType.HARD_DECODE
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -166,6 +169,7 @@ class AnimVapxDemoActivity : Activity(), IAnimListener {
             val md5 = FileUtil.getFileMD5(file)
             if (videoInfo.md5 == md5) {
                 // 开始播放动画文件
+                animView.setVideoDecodeType(videoDecodeType)
                 animView.startPlay(file)
             } else {
                 Log.e(TAG, "md5 is not match, error md5=$md5")
@@ -254,7 +258,13 @@ class AnimVapxDemoActivity : Activity(), IAnimListener {
         /**
          * 开始播放按钮
          */
-        btnPlay.setOnClickListener {
+        btnPlayWithHardDecode.setOnClickListener {
+            videoDecodeType = VideoDecodeType.HARD_DECODE
+            play(videoInfo)
+        }
+
+        btnPlayWithSoftDecode.setOnClickListener {
+            videoDecodeType = VideoDecodeType.SOFT_DECODE
             play(videoInfo)
         }
         /**

@@ -39,10 +39,10 @@ import com.tencent.qgame.animplayer.util.ScaleType
 import com.tencent.qgame.animplayer.util.ScaleTypeUtil
 import java.io.File
 
-open class AnimView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0):
-    IAnimView,
-    FrameLayout(context, attrs, defStyleAttr),
-    TextureView.SurfaceTextureListener {
+open class AnimView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0) :
+        IAnimView,
+        FrameLayout(context, attrs, defStyleAttr),
+        TextureView.SurfaceTextureListener {
 
     companion object {
         private const val TAG = "${Constant.TAG}.AnimView"
@@ -316,6 +316,10 @@ open class AnimView @JvmOverloads constructor(context: Context, attrs: Attribute
      */
     private fun belowKitKat(): Boolean {
         return Build.VERSION.SDK_INT <= 19
+    }
+
+    fun setVideoDecodeType(videoDecodeType: VideoDecodeType) {
+        player.videoDecodeType = videoDecodeType;
     }
 
     private fun release() {

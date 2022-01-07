@@ -222,7 +222,7 @@ class AnimActiveDemoActivity : Activity(), IAnimListener {
         /**
          * 开始播放按钮
          */
-        btnPlay.setOnClickListener {
+        btnPlayWithHardDecode.setOnClickListener {
             updateTestMask()
             play(videoInfo)
         }

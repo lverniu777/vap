@@ -197,7 +197,7 @@ class AnimSpecialSizeDemoActivity : Activity(), IAnimListener {
         /**
          * 开始播放按钮
          */
-        btnPlay.setOnClickListener {
+        btnPlayWithHardDecode.setOnClickListener {
             play(videoInfo)
         }
         /**

@@ -3,9 +3,8 @@ package com.tencent.qgame.animplayer;
 public class DecoderFactory {
 
     public static Decoder getInstance(AnimPlayer animPlayer) {
-        //软硬解降级逻辑
         final Decoder decoder;
-        if (false) {
+        if (animPlayer.getVideoDecodeType() == VideoDecodeType.HARD_DECODE) {
             decoder = new HardVideoDecoder(animPlayer);
         } else {
             decoder = new SoftVideoDecoder(animPlayer);

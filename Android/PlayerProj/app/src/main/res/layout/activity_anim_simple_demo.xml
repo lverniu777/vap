@@ -15,10 +15,15 @@
         android:orientation="horizontal"
         android:visibility="gone">
         <Button
-            android:id="@+id/btnPlay"
+            android:id="@+id/btnPlayWithHardDecode"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="PLAY"/>
+            android:text="硬解播放"/>
+        <Button
+            android:id="@+id/btnPlayWithSoftDecode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="软解播放"/>
         <Button
             android:id="@+id/btnStop"
             android:layout_width="wrap_content"
