@@ -182,8 +182,8 @@ class HardAudioPlayer(val player: AnimPlayer) : BaseAudioPlayer() {
     }
 
     override fun destroy() {
-        needDestroy = true
         if (isRunning) {
+            needDestroy = true
             stop()
         } else {
             destroyInner()

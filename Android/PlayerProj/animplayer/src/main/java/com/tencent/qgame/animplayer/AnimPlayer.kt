@@ -35,6 +35,8 @@ class AnimPlayer(val animView: IAnimView) {
             decoder?.fps = value
             field = value
         }
+    // 设置默认的fps <= 0 表示以vapc配置为准 > 0  表示以此设置为准
+    var defaultFps: Int = 0
     var playLoop: Int = 0
         set(value) {
             decoder?.playLoop = value
@@ -51,6 +53,7 @@ class AnimPlayer(val animView: IAnimView) {
     var isSurfaceAvailable = false
     var startRunnable: Runnable? = null
     var isStartRunning = false // 启动时运行状态
+    var isMute = false // 是否静音
 
     val configManager = AnimConfigManager(this)
     val pluginManager = AnimPluginManager(this)
@@ -83,7 +86,7 @@ class AnimPlayer(val animView: IAnimView) {
         }
         // 在线程中解析配置
         decoder?.renderThread?.handler?.post {
-            val result = configManager.parseConfig(fileContainer, enableVersion1, videoMode, fps)
+            val result = configManager.parseConfig(fileContainer, enableVersion1, videoMode, defaultFps)
             if (result != Constant.OK) {
                 isStartRunning = false
                 decoder?.onFailed(result, Constant.getErrorMsg(result))
@@ -106,11 +109,13 @@ class AnimPlayer(val animView: IAnimView) {
             if (isSurfaceAvailable) {
                 isStartRunning = false
                 decoder?.start(fileContainer)
-                audioPlayer?.start(fileContainer)
+                if (!isMute) {
+                    audioPlayer?.start(fileContainer)
+                }
             } else {
                  startRunnable = Runnable {
                     innerStartPlay(fileContainer)
-                }
+                 }
                 animView.prepareTextureView()
             }
         }
